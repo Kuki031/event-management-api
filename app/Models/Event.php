@@ -20,4 +20,6 @@ class Event extends Model
     {
         return $this->hasMany(Attendee::class);
     }
+
+    protected $fillable = ["name", "description", "start_time", "end_time", "user_id"];
 }
