@@ -6,20 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\EventResource;
 use App\Http\Traits\CanLoadRelationships;
 use App\Models\Event;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Gate;
 
 class EventController extends Controller implements HasMiddleware
 {
-    use CanLoadRelationships;
+    use CanLoadRelationships, AuthorizesRequests;
     private array $relations = ["user", "attendees", "attendees.user"];
 
     public static function middleware():array {
         return [
-            new Middleware("auth:sanctum", except: ["index", "show"])
+            new Middleware("auth:sanctum", except: ["index", "show"]),
+            new Middleware('can:delete,event', only: ['destroy']),
+            new Middleware('can:update,event', only: ['udpate'])
         ];
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -62,6 +67,8 @@ class EventController extends Controller implements HasMiddleware
      */
     public function update(Request $request, Event $event)
     {
+
+        $this->authorize("update-event", $event);
 
         $event->update($request->validate([
             "name" => "sometimes|string|max:255",
